@@ -1,0 +1,82 @@
+<html>
+    <head>
+        <script type="text/javascript" src="opencv.js" async onload='onOpenCvReady();'></script>
+    </head>
+    <body>
+        <img id='src-image' style="width:50%;" src='shapes_and_colors.jpeg' onload="imgload();" alt=''>
+        <canvas id="canvas-id"></canvas>
+
+        <script>
+            var opencvloaded = false;
+            window.onOpenCvReady = function () { 
+                function openCvReady() {
+                    cv['onRuntimeInitialized']=()=>{
+                        console.log("opencv loaded");
+                        opencvloaded = true;
+                    };
+                }
+                openCvReady();
+            }
+
+            function imgload() {
+                if (opencvloaded == false) {
+                    console.log("set timeout");
+                    setTimeout(imgload, 100);
+                    return;
+                }
+                console.log("process");
+                var image = cv.imread('src-image');
+                var dst = new cv.Mat();
+                var gray = new cv.Mat();
+                var thresh = new cv.Mat();
+                var blurred = new cv.Mat();
+                cv.cvtColor(image, gray, cv.COLOR_BGR2GRAY, 0);
+                let dsize = new cv.Size(5, 5);
+                cv.GaussianBlur(gray, blurred, dsize, 0, 0);
+                cv.threshold(blurred, thresh, 60, 255, cv.THRESH_BINARY)[1]
+                //cv.Canny(blurred, dst, 50, 100, 3, false); 
+                let contours = new cv.MatVector();
+                let hierarchy = new cv.Mat();
+                cv.findContours(thresh, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+                //var cnts = imutils.grab_contours(contours);
+                console.log(contours.size());
+                for (let i = 0; i < contours.size(); ++i) {
+                    let contour = contours.get(i);
+                    detect(contour);
+                    let M = cv.moments(contour, false);
+
+                    var cX = M["m10"] / M["m00"];
+                    var cY = M["m01"] / M["m00"];
+
+                    console.log(cX, cY);
+                    let center = new cv.Point(cX, cY);
+                    cv.circle(image, center, 3, [0, 0, 0, 255], 3);
+
+                    let color = new cv.Scalar(0,0,255);
+                    console.log(color);
+                    cv.drawContours(image, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
+
+                }
+                cv.imshow('canvas-id', image);
+            }
+
+            function detect(c) {
+                var shape = "unidentified";
+                var peri = cv.arcLength(c, true);
+                let poly = new cv.Mat();
+                cv.approxPolyDP(c, poly, 0.04 * peri, true);
+
+                if (poly.rows == 3) {
+			        shape = "triangle";
+                    console.log("triangle!!!!!");
+                }
+                if (poly.rows == 4) {
+			        shape = "square";
+                    console.log("square!!!!!!");
+                }
+
+                return shape;
+            }
+        </script>
+    </body>
+</html>
