@@ -72,7 +72,15 @@
                 }
                 if (poly.rows == 4) {
 			        shape = "square";
-                    console.log("square!!!!!!");
+                    let rect = cv.boundingRect(c);
+                    console.log(rect.x, rect.y, rect.width, rect.height);
+                    let ar = rect.width / rect.height;
+                    console.log(ar);
+                    if (Math.abs(ar - 1) < 0.1) {
+                        console.log("square!!!!!!");
+                    } else {
+                        console.log("rectangular!!!");
+                    }
                 }
 
                 return shape;
