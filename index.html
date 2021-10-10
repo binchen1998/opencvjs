@@ -43,6 +43,7 @@
                 for (let i = 0; i < contours.size(); ++i) {
                     let contour = contours.get(i);
                     detect(contour);
+                    color1(image, contours, i);
                     let M = cv.moments(contour, false);
 
                     var cX = M["m10"] / M["m00"];
@@ -50,14 +51,40 @@
 
                     console.log(cX, cY);
                     let center = new cv.Point(cX, cY);
-                    cv.circle(image, center, 3, [0, 0, 0, 255], 3);
+                    //cv.circle(image, center, 3, [0, 0, 0, 255], 3);
 
-                    let color = new cv.Scalar(0,0,255);
-                    console.log(color);
-                    cv.drawContours(image, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
+                    let color = new cv.Scalar(0,255,0);
+                    //console.log(color);
+                    //cv.drawContours(image, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
 
                 }
-                cv.imshow('canvas-id', image);
+                //cv.imshow('canvas-id', image);
+            }
+
+            function color1(image, contours, i) {
+                console.log(image.cols);
+                let mask = cv.Mat.zeros(image.rows, image.cols, cv.CV_8U);
+                let mean = new cv.Mat;
+                let std = new cv.Mat;
+                //let t1 = new cv.Mat();
+
+                //cv.meanStdDev(image, mean, std, mask);
+
+                //console.log("mask std: ", mean);
+                
+                let c = new cv.Scalar(255,255,255);
+
+                cv.drawContours(mask, contours, i, c, -1);
+
+                let M = cv.Mat.ones(5, 5, cv.CV_8U);
+                let anchor = new cv.Point(-1, -1);
+
+                cv.erode(mask, mask, M, anchor, 2);
+                let result = cv.mean(image, mask);
+                console.log("result: ", result);
+
+                //console.log("mean: ", mean.data);
+                cv.imshow('canvas-id', mask);
             }
 
             function detect(c) {
@@ -65,7 +92,7 @@
                 var peri = cv.arcLength(c, true);
                 let poly = new cv.Mat();
                 cv.approxPolyDP(c, poly, 0.04 * peri, true);
-
+                //console.log("side count: ", poly.rows);
                 if (poly.rows == 3) {
 			        shape = "triangle";
                     console.log("triangle!!!!!");
@@ -73,9 +100,9 @@
                 if (poly.rows == 4) {
 			        shape = "square";
                     let rect = cv.boundingRect(c);
-                    console.log(rect.x, rect.y, rect.width, rect.height);
+                    //console.log(rect.x, rect.y, rect.width, rect.height);
                     let ar = rect.width / rect.height;
-                    console.log(ar);
+                    //console.log(ar);
                     if (Math.abs(ar - 1) < 0.1) {
                         console.log("square!!!!!!");
                     } else {
@@ -85,6 +112,7 @@
 
                 return shape;
             }
+
         </script>
     </body>
 </html>
