@@ -1,3 +1,3 @@
 # opencvjs
 
-A experiment to detect the shape of tangram, using opencv
+An experiment to detect the shape of tangram, using opencv
